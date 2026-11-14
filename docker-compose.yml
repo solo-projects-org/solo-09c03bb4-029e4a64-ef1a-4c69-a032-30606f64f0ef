@@ -1,0 +1,23 @@
+services:
+  dp-api:
+    build: .
+    image: dp-cohort-api:1.0.0
+    container_name: dp-cohort-api
+    ports:
+      - "8000:8000"
+    environment:
+      DPAPI_DB_PATH: /data/dpapi.db
+    volumes:
+      # Named volume keeps the SQLite database (cohort, results, budget)
+      # across container restarts and recreations.
+      - dpapi-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  dpapi-data:
